@@ -474,12 +474,30 @@ class Template
                     unset($array['file']);
                     // 分析模板文件名并读取内容
                     $parseStr = $this->parseTemplateName($file);
+                    //[SWH|+]删掉必须替换掉的占位符==\
+                    $mustReplaces = [];
+                    $parseStr = preg_replace_callback('{^[\s]*<\\!\\-\\-[\s]*(<must\\-replace[\s]+[^/]+/>)[\s]*\\-\\->[\s]*}',function($p)use(&$mustReplaces){
+                        $mustReplaces = $this->parseAttr($p[1]);
+                        return '';
+                    },$parseStr);
+                    //===========================/
                     foreach ($array as $k => $v) {
                         // 以$开头字符串转换成模板变量
                         if (0 === strpos($v, '$')) {
                             $v = $this->get(substr($v, 1));
                         }
                         $parseStr = str_replace('[' . $k . ']', $v, $parseStr);
+                        if($mustReplaces && isset($mustReplaces[$k])) unset($mustReplaces[$k]);//[SWH|+]删掉必须替换掉的占位符
+                    }
+                    //[SWH|+]删掉必须替换掉的占位符
+                    if($mustReplaces){
+                        foreach ($mustReplaces as $k => $v) {
+                            // 以$开头字符串转换成模板变量
+                            if (0 === strpos($v, '$')) {
+                                $v = $this->get(substr($v, 1));
+                            }
+                            $parseStr = str_replace('[' . $k . ']', $v, $parseStr);
+                        }
                     }
                     $content = str_replace($match[0], $parseStr, $content);
                     // 再次对包含文件进行模板分析
