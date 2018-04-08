@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
-// | Copyright (c) 2006~2017 http://thinkphp.cn All rights reserved.
+// | Copyright (c) 2006~2018 http://thinkphp.cn All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
@@ -22,6 +22,7 @@ class Sqlite extends Builder
     /**
      * limit
      * @access public
+     * @param string $limit
      * @return string
      */
     public function parseLimit($limit)
@@ -60,10 +61,11 @@ class Sqlite extends Builder
         $key = trim($key);
         if (strpos($key, '.')) {
             list($table, $key) = explode('.', $key, 2);
+            if ('__TABLE__' == $table) {
+                $table = $this->query->getTable();
+            }
             if (isset($options['alias'][$table])) {
                 $table = $options['alias'][$table];
-            } elseif ('__TABLE__' == $table) {
-                $table = $this->query->getTable();
             }
         }
         if (isset($table)) {
